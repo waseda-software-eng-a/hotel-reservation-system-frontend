@@ -13,7 +13,10 @@ export default function ReservationPageTemplate() {
             <a href="#rooms">客室</a>
             <a href="#access">アクセス</a>
           </nav>
-          <a className="rounded-md bg-ink px-4 py-2 text-sm font-semibold text-white" href="#reservation">
+          <a
+            className="rounded-md bg-ink px-4 py-2 text-sm font-semibold text-white"
+            href="#reservation"
+          >
             予約する
           </a>
         </div>
