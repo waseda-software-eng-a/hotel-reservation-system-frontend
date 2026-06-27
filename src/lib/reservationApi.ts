@@ -1,12 +1,12 @@
 import type {
   AvailabilitySearchParams,
-  AvailableRoom,
+  AvailablePlan,
   Reservation,
   ReservationDraft,
 } from "@/types/reservation";
 
 type AvailabilityResponse = {
-  rooms: AvailableRoom[];
+  plans: AvailablePlan[];
 };
 
 type ReservationResponse = {
@@ -22,13 +22,16 @@ async function parseApiError(response: Response, fallbackMessage: string): Promi
   return new Error(body.message ?? fallbackMessage);
 }
 
-export async function searchAvailableRooms(
+export async function searchAvailablePlans(
   params: AvailabilitySearchParams,
-): Promise<AvailableRoom[]> {
+): Promise<AvailablePlan[]> {
   const searchParams = new URLSearchParams({
+    hotelId: params.hotelId,
     checkInDate: params.checkInDate,
     checkOutDate: params.checkOutDate,
-    guests: String(params.guests),
+    adults: String(params.adults),
+    children: String(params.children),
+    roomCount: String(params.roomCount),
   });
 
   const response = await fetch(`/api/rooms/availability?${searchParams.toString()}`);
@@ -37,7 +40,7 @@ export async function searchAvailableRooms(
   }
 
   const data = (await response.json()) as AvailabilityResponse;
-  return data.rooms;
+  return data.plans;
 }
 
 export async function createReservation(draft: ReservationDraft): Promise<Reservation> {

@@ -1,5 +1,5 @@
+import { MockAvailabilityDao } from "@/app/api/dao/mock/mockAvailabilityDao";
 import { MockReservationDao } from "@/app/api/dao/mock/mockReservationDao";
-import { MockRoomDao } from "@/app/api/dao/mock/mockRoomDao";
 
-export const roomDao = new MockRoomDao();
+export const availabilityDao = new MockAvailabilityDao();
 export const reservationDao = new MockReservationDao();

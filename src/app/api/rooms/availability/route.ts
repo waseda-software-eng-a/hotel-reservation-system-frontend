@@ -1,4 +1,4 @@
-import { roomDao } from "@/app/api/dao";
+import { availabilityDao } from "@/app/api/dao";
 import type { AvailabilitySearchParams } from "@/app/api/model/reservation";
 import { AvailabilityService } from "@/app/api/service/availabilityService";
 import { NextResponse } from "next/server";
@@ -6,15 +6,18 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const params: AvailabilitySearchParams = {
+    hotelId: searchParams.get("hotelId") ?? "",
     checkInDate: searchParams.get("checkInDate") ?? "",
     checkOutDate: searchParams.get("checkOutDate") ?? "",
-    guests: Number(searchParams.get("guests") ?? "0"),
+    adults: Number(searchParams.get("adults") ?? "0"),
+    children: Number(searchParams.get("children") ?? "0"),
+    roomCount: Number(searchParams.get("roomCount") ?? "0"),
   };
 
   try {
-    const service = new AvailabilityService(roomDao);
-    const rooms = await service.search(params);
-    return NextResponse.json({ rooms });
+    const service = new AvailabilityService(availabilityDao);
+    const plans = await service.search(params);
+    return NextResponse.json({ plans });
   } catch (error) {
     return NextResponse.json(
       { message: error instanceof Error ? error.message : "空室検索に失敗しました。" },

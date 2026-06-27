@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Button from "@/components/atoms/Button";
 import TextField from "@/components/atoms/TextField";
 import type { GuestInfo } from "@/types/reservation";
@@ -10,6 +11,7 @@ type GuestInfoFormProps = {
   isSubmitting: boolean;
   onChange: (guestInfo: GuestInfo) => void;
   onSubmit: () => void;
+  beforeSubmit?: ReactNode;
 };
 
 export default function GuestInfoForm({
@@ -18,6 +20,7 @@ export default function GuestInfoForm({
   isSubmitting,
   onChange,
   onSubmit,
+  beforeSubmit,
 }: GuestInfoFormProps) {
   return (
     <form
@@ -53,6 +56,7 @@ export default function GuestInfoForm({
         type="tel"
         value={guestInfo.phone}
       />
+      {beforeSubmit}
       <Button disabled={disabled || isSubmitting} type="submit">
         {isSubmitting ? "予約中" : "予約を確定"}
       </Button>

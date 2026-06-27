@@ -12,10 +12,10 @@ export default function SelectField({
   ...props
 }: SelectFieldProps) {
   return (
-    <label className="grid gap-2 text-sm font-semibold text-slate-700">
+    <label className="grid gap-2 text-xs font-semibold tracking-[0.12em] text-stone-600">
       {label}
       <select
-        className={`rounded-md border border-slate-300 px-3 py-3 outline-none transition focus:border-ocean ${className}`}
+        className={`border border-stone-300 bg-white px-3 py-3 text-sm tracking-normal text-ink outline-none transition focus:border-deepGreen ${className}`}
         {...props}
       >
         {options.map((option) => (

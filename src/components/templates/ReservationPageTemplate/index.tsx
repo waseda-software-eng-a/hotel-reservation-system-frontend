@@ -1,49 +1,97 @@
-import ReservationFlow from "@/components/organisms/ReservationFlow";
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import StaySearchForm from "@/components/molecules/StaySearchForm";
+import HotelSiteHeader from "@/components/organisms/HotelSiteHeader";
+import type { AvailabilitySearchParams } from "@/types/reservation";
+import { createAvailabilityQuery } from "@/utils/reservationQuery";
+
+const initialSearchState: AvailabilitySearchParams = {
+  hotelId: "waseda-tokyo",
+  checkInDate: "",
+  checkOutDate: "",
+  adults: 2,
+  children: 0,
+  roomCount: 1,
+};
 
 export default function ReservationPageTemplate() {
+  const router = useRouter();
+  const [isReservationOpen, setIsReservationOpen] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const [searchState, setSearchState] = useState<AvailabilitySearchParams>(initialSearchState);
+
+  function searchFromHeader() {
+    if (!searchState.checkInDate || !searchState.checkOutDate) {
+      setSearchError("チェックイン日とチェックアウト日を選択してください。");
+      return;
+    }
+
+    if (searchState.checkOutDate <= searchState.checkInDate) {
+      setSearchError("チェックアウト日はチェックイン日より後にしてください。");
+      return;
+    }
+
+    setSearchError("");
+    setIsSearching(true);
+    router.push(`/plans?${createAvailabilityQuery(searchState).toString()}`);
+  }
+
   return (
-    <main className="min-h-screen bg-mist text-ink">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-          <a className="text-xl font-bold tracking-normal" href="#">
-            Hotel Stay
-          </a>
-          <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex">
-            <a href="#reservation">予約</a>
-            <a href="#rooms">客室</a>
-            <a href="#access">アクセス</a>
-          </nav>
-          <a
-            className="rounded-md bg-ink px-4 py-2 text-sm font-semibold text-white"
-            href="#reservation"
-          >
-            予約する
-          </a>
-        </div>
-      </header>
+    <main className="min-h-screen bg-ivory text-ink">
+      <HotelSiteHeader onReservationOpen={() => setIsReservationOpen(true)} />
 
-      <section className="bg-white">
-        <div className="mx-auto grid max-w-6xl gap-8 px-5 py-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:py-14">
-          <div>
-            <p className="mb-3 text-sm font-semibold text-ocean">Hotel reservation</p>
-            <h1 className="max-w-2xl text-4xl font-bold leading-tight tracking-normal md:text-5xl">
-              宿泊日を選んで、このホテルの空室を予約
+      {isReservationOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/35 px-4 py-6 md:py-10">
+          <div className="mx-auto max-w-5xl bg-white shadow-soft">
+            <StaySearchForm
+              isSearching={isSearching}
+              onChange={setSearchState}
+              onClose={() => setIsReservationOpen(false)}
+              onSearch={searchFromHeader}
+              value={searchState}
+            />
+            {searchError && (
+              <p className="mx-6 mb-7 border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 md:mx-12">
+                {searchError}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      <section
+        className="relative isolate flex min-h-[32rem] items-end overflow-hidden border-b border-stone-200 md:min-h-[40rem]"
+        id="top"
+      >
+        <Image
+          alt="夜のホテルワセリコ外観"
+          className="-z-20 object-cover object-center"
+          fill
+          priority
+          sizes="100vw"
+          src="/images/waseriko-hotel.png"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-gradient-to-r from-black/75 via-black/45 to-black/15"
+        />
+        <div className="mx-auto w-full max-w-7xl px-5 py-12 md:py-20 lg:py-24">
+          <div className="max-w-2xl">
+            <p className="mb-5 text-xs font-semibold tracking-[0.28em] text-[#d8c497]">
+              TOKYO STAY
+            </p>
+            <h1 className="font-serif text-4xl font-semibold leading-tight tracking-normal text-white drop-shadow-sm md:text-6xl">
+              静かな滞在を、確かな予約体験で。
             </h1>
-            <p className="mt-5 max-w-xl text-base leading-7 text-slate-600">
-              空室検索、部屋選択、利用者情報入力までを API 経由で進める予約画面です。
-            </p>
-          </div>
-          <div className="min-h-72 rounded-lg bg-[linear-gradient(135deg,#0f766e,#f59e0b)] p-6 text-white shadow-soft">
-            <p className="text-sm font-bold">Waseda Garden Hotel</p>
-            <p className="mt-24 max-w-sm text-2xl font-bold leading-tight">
-              静かな客室と駅近アクセスで、出張にも観光にも使いやすい滞在を。
+            <p className="mt-6 max-w-xl text-sm leading-8 text-white/90 md:text-base">
+              右上の「ご予約」から宿泊日、人数、客室数を指定して空室を検索できます。
             </p>
           </div>
         </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-5 py-10" id="reservation">
-        <ReservationFlow />
       </section>
     </main>
   );

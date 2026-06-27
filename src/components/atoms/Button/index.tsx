@@ -8,9 +8,9 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variantClassName: Record<ButtonVariant, string> = {
-  primary: "bg-ocean text-white hover:bg-teal-700",
-  secondary: "border border-ocean bg-white text-ocean hover:bg-teal-50",
-  ghost: "bg-slate-100 text-slate-700 hover:bg-slate-200",
+  primary: "border border-deepGreen bg-deepGreen text-white hover:bg-white hover:text-deepGreen",
+  secondary: "border border-deepGreen bg-white text-deepGreen hover:bg-ivory",
+  ghost: "border border-stone-200 bg-stone-50 text-stone-700 hover:bg-stone-100",
 };
 
 export default function Button({
@@ -22,7 +22,7 @@ export default function Button({
 }: ButtonProps) {
   return (
     <button
-      className={`rounded-md px-4 py-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-50 ${variantClassName[variant]} ${className}`}
+      className={`px-4 py-3 text-sm font-bold tracking-[0.08em] transition disabled:cursor-not-allowed disabled:opacity-50 ${variantClassName[variant]} ${className}`}
       type={type}
       {...props}
     >
