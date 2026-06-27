@@ -1,0 +1,7 @@
+[tools]
+node = "24.11.1"
+bun = "latest"
+
+[settings]
+# .node-version も読み取り対象にする（mise 未導入環境向けに .node-version は手動で維持）
+idiomatic_version_file = true
