@@ -7,10 +7,6 @@ export class AvailabilityService {
   constructor(private readonly availabilityDao: AvailabilityDao) {}
 
   async search(params: AvailabilitySearchParams): Promise<AvailablePlan[]> {
-    if (!params.hotelId) {
-      throw new Error("ホテルを選択してください。");
-    }
-
     if (!params.checkInDate || !params.checkOutDate) {
       throw new Error("宿泊日を入力してください。");
     }

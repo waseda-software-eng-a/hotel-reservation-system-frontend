@@ -10,6 +10,10 @@
 - Next.js App Router
 - Tailwind CSS
 
+## Documentation
+
+- [テーブル設計](docs/database-design.md)
+
 ## Getting Started
 
 ### 前提条件
@@ -29,6 +33,12 @@ mise install
 
 # 依存関係をインストール
 bun install
+
+# 環境変数を作成し、Supabaseの接続情報を設定
+cp .env.example .env
+
+# マイグレーションとseedをリンク済みSupabaseへ適用
+bunx supabase db push --include-seed
 ```
 
 ### 開発サーバー起動

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -8,7 +8,7 @@ import GuestInfoForm from "@/components/molecules/GuestInfoForm";
 import BookingHeader from "@/components/organisms/BookingHeader";
 import { useAvailablePlans } from "@/hooks/useAvailablePlans";
 import { createReservation } from "@/lib/reservationApi";
-import type { GuestInfo, Reservation } from "@/types/reservation";
+import type { RepresentativeInfo, Reservation } from "@/types/reservation";
 import { formatCurrency } from "@/utils/formatting";
 import {
   createAvailabilityQuery,
@@ -16,10 +16,11 @@ import {
   readAvailabilityParams,
 } from "@/utils/reservationQuery";
 
-const initialGuestInfo: GuestInfo = {
-  fullName: "",
+const initialRepresentativeInfo: RepresentativeInfo = {
   email: "",
   phone: "",
+  postalCode: "",
+  address: "",
 };
 
 export default function BookingPageClient() {
@@ -34,7 +35,9 @@ export default function BookingPageClient() {
   const availabilityQuery = createAvailabilityQuery(availability);
   const plansHref = `/plans?${availabilityQuery.toString()}`;
   const { error: loadError, isLoading, plans } = useAvailablePlans(availability);
-  const [guestInfo, setGuestInfo] = useState(initialGuestInfo);
+  const guestCount = availability.adults + availability.children;
+  const [representativeInfo, setRepresentativeInfo] = useState(initialRepresentativeInfo);
+  const [guestNames, setGuestNames] = useState<string[]>(() => Array(guestCount).fill(""));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState("");
@@ -42,6 +45,12 @@ export default function BookingPageClient() {
 
   const selectedPlan = plans.find((plan) => plan.id === planId) ?? null;
   const selectedRoom = selectedPlan?.rooms.find((room) => room.id === roomId) ?? null;
+
+  useEffect(() => {
+    setGuestNames((currentNames) =>
+      Array.from({ length: guestCount }, (_, index) => currentNames[index] ?? ""),
+    );
+  }, [guestCount]);
 
   async function handleReserve() {
     if (!selectedPlan || !selectedRoom) {
@@ -61,7 +70,10 @@ export default function BookingPageClient() {
         ...availability,
         planId: selectedPlan.id,
         roomId: selectedRoom.id,
-        guestInfo,
+        paymentMethod: selectedPlan.paymentMethods[0],
+        termsAccepted: accepted,
+        representativeInfo,
+        guestNames,
       });
       setReservation(created);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -84,7 +96,7 @@ export default function BookingPageClient() {
             <p className="mt-6 text-sm text-stone-500">予約番号</p>
             <p className="mt-1 font-serif text-2xl font-semibold">{reservation.id}</p>
             <p className="mt-6 text-sm leading-7 text-stone-600">
-              ご予約内容は {reservation.guestInfo.email} 宛にご案内する想定です。
+              ご予約内容は {reservation.representativeInfo.email} 宛にご案内する想定です。
             </p>
             <p className="mt-3 font-serif text-xl">{formatCurrency(reservation.totalPrice)}</p>
             <Link
@@ -130,10 +142,12 @@ export default function BookingPageClient() {
                       </label>
                     }
                     disabled={false}
-                    guestInfo={guestInfo}
+                    guestNames={guestNames}
                     isSubmitting={isSubmitting}
-                    onChange={setGuestInfo}
+                    onGuestNamesChange={setGuestNames}
+                    onRepresentativeInfoChange={setRepresentativeInfo}
                     onSubmit={handleReserve}
+                    representativeInfo={representativeInfo}
                   />
                 </div>
               </section>

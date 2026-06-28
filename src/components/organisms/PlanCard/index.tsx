@@ -115,21 +115,20 @@ export default function PlanCard({ availability, plan }: PlanCardProps) {
                 </div>
                 <div>
                   <div className="flex flex-wrap gap-2">
-                    {[room.wing, room.floor, bedLabel, room.isNonSmoking ? "禁煙" : "喫煙可"].map(
-                      (label) => (
+                    {[room.wing, room.floor, bedLabel, ...room.amenities.slice(0, 2)]
+                      .filter(Boolean)
+                      .map((label) => (
                         <span
                           className="border border-[#ccbe9f] px-2 py-0.5 text-[11px] text-[#6e592c]"
                           key={label}
                         >
                           {label}
                         </span>
-                      ),
-                    )}
+                      ))}
                   </div>
                   <h4 className="mt-2 font-serif text-lg font-semibold">{room.name}</h4>
                   <p className="mt-2 text-sm text-stone-600">
-                    {room.sizeSqm}㎡ / 1〜{room.capacity}名 /{" "}
-                    {room.hasWifi ? "無料Wi-Fi" : "Wi-Fiなし"} / 残り
+                    {room.sizeSqm}㎡ / 1〜{room.capacity}名 / 残り
                     {room.availableCount}室
                   </p>
                 </div>

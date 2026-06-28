@@ -6,7 +6,6 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const params: AvailabilitySearchParams = {
-    hotelId: searchParams.get("hotelId") ?? "",
     checkInDate: searchParams.get("checkInDate") ?? "",
     checkOutDate: searchParams.get("checkOutDate") ?? "",
     adults: Number(searchParams.get("adults") ?? "0"),

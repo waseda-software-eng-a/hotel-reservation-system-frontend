@@ -1,6 +1,6 @@
 export type {
   AvailabilitySearchParams,
-  GuestInfo,
+  RepresentativeInfo,
   Reservation,
   ReservationDraft,
 } from "@/types/reservation";
