@@ -11,6 +11,9 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: ci-only-placeholder
 
     steps:
       - name: Checkout
@@ -23,7 +26,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Format
-        run: bunx prettier --check "src/**/*.{ts,tsx,css}" ".github/**/*.yml" "*.{ts,mjs,json,md,yml}"
+        run: bun run format:check
 
       - name: Lint
         run: bun run lint

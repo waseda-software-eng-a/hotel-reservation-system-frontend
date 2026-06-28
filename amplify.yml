@@ -7,6 +7,9 @@ frontend:
         - npm install --no-audit --no-fund
     build:
       commands:
+        - test -n "$SUPABASE_URL"
+        - test -n "$SUPABASE_SERVICE_ROLE_KEY"
+        - env | grep -e '^SUPABASE_URL=' -e '^SUPABASE_SERVICE_ROLE_KEY=' > .env.production
         - npm run build
   artifacts:
     baseDirectory: .next
