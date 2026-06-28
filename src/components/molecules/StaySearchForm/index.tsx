@@ -151,12 +151,6 @@ type StaySearchFormProps = {
   onClose?: () => void;
 };
 
-const hotelOptions = [
-  { label: "Waseda Hotel Tokyo", value: "waseda-tokyo" },
-  { label: "Waseda Garden Hotel", value: "waseda-garden" },
-  { label: "Waseda Bay Hotel", value: "waseda-bay" },
-];
-
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
@@ -271,33 +265,6 @@ export default function StaySearchForm({
         </div>
 
         <div className="grid gap-6">
-          <label className="grid gap-2 text-sm font-semibold text-ink">
-            <span>ホテル名</span>
-            <span className="relative block">
-              <select
-                className="h-14 w-full appearance-none border border-stone-300 bg-white px-4 pr-11 text-sm text-ink outline-none transition focus:border-gold"
-                onChange={(event) => {
-                  setIsGuestPanelOpen(false);
-                  setActiveDateField(null);
-                  onChange({ ...value, hotelId: event.target.value });
-                }}
-                value={value.hotelId}
-              >
-                {hotelOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <span
-                aria-hidden
-                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gold"
-              >
-                v
-              </span>
-            </span>
-          </label>
-
           <div className="relative" ref={datePanelRef}>
             <div className="grid gap-6 md:grid-cols-2 md:gap-4">
               {(

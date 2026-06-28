@@ -10,10 +10,6 @@ export class ReservationService {
   ) {}
 
   async create(draft: ReservationDraft): Promise<Reservation> {
-    if (!draft.hotelId) {
-      throw new Error("ホテルを選択してください。");
-    }
-
     if (!draft.roomId) {
       throw new Error("部屋を選択してください。");
     }
@@ -26,8 +22,17 @@ export class ReservationService {
       throw new Error("宿泊日を確認してください。");
     }
 
-    if (!draft.guestInfo?.fullName || !draft.guestInfo.email || !draft.guestInfo.phone) {
-      throw new Error("利用者情報を入力してください。");
+    if (
+      !draft.representativeInfo?.email ||
+      !draft.representativeInfo.phone ||
+      !draft.representativeInfo.postalCode ||
+      !draft.representativeInfo.address
+    ) {
+      throw new Error("代表者情報を入力してください。");
+    }
+
+    if (!draft.termsAccepted) {
+      throw new Error("キャンセルポリシーと利用条件への同意が必要です。");
     }
 
     if (
@@ -41,8 +46,19 @@ export class ReservationService {
       throw new Error("宿泊人数・客室数を確認してください。");
     }
 
+    if (
+      !Array.isArray(draft.guestNames) ||
+      draft.guestNames.length !== draft.adults + draft.children ||
+      draft.guestNames.some((name) => !name.trim())
+    ) {
+      throw new Error("宿泊者全員の氏名を入力してください。");
+    }
+
+    if (!/^\d{3}-?\d{4}$/.test(draft.representativeInfo.postalCode)) {
+      throw new Error("郵便番号は7桁で入力してください。");
+    }
+
     const plans = await this.availabilityDao.findAvailablePlans({
-      hotelId: draft.hotelId,
       checkInDate: draft.checkInDate,
       checkOutDate: draft.checkOutDate,
       adults: draft.adults,
@@ -56,6 +72,10 @@ export class ReservationService {
       throw new Error("選択したプラン・客室は現在予約できません。");
     }
 
-    return this.reservationDao.create(draft, selectedRoom.totalPrice);
+    if (!selectedPlan.paymentMethods.includes(draft.paymentMethod)) {
+      throw new Error("選択した支払方法は利用できません。");
+    }
+
+    return this.reservationDao.create(draft);
   }
 }

@@ -6,7 +6,6 @@ type SearchParamReader = {
 
 export function readAvailabilityParams(params: SearchParamReader): AvailabilitySearchParams {
   return {
-    hotelId: params.get("hotelId") ?? "waseda-tokyo",
     checkInDate: params.get("checkInDate") ?? "",
     checkOutDate: params.get("checkOutDate") ?? "",
     adults: Number(params.get("adults") ?? "2"),
@@ -17,7 +16,6 @@ export function readAvailabilityParams(params: SearchParamReader): AvailabilityS
 
 export function createAvailabilityQuery(params: AvailabilitySearchParams) {
   return new URLSearchParams({
-    hotelId: params.hotelId,
     checkInDate: params.checkInDate,
     checkOutDate: params.checkOutDate,
     adults: String(params.adults),

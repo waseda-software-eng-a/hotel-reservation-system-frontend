@@ -26,7 +26,6 @@ export async function searchAvailablePlans(
   params: AvailabilitySearchParams,
 ): Promise<AvailablePlan[]> {
   const searchParams = new URLSearchParams({
-    hotelId: params.hotelId,
     checkInDate: params.checkInDate,
     checkOutDate: params.checkOutDate,
     adults: String(params.adults),

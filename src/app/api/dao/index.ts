@@ -1,5 +1,5 @@
-import { MockAvailabilityDao } from "@/app/api/dao/mock/mockAvailabilityDao";
-import { MockReservationDao } from "@/app/api/dao/mock/mockReservationDao";
+import { SupabaseAvailabilityDao } from "@/app/api/dao/supabase/supabaseAvailabilityDao";
+import { SupabaseReservationDao } from "@/app/api/dao/supabase/supabaseReservationDao";
 
-export const availabilityDao = new MockAvailabilityDao();
-export const reservationDao = new MockReservationDao();
+export const availabilityDao = new SupabaseAvailabilityDao();
+export const reservationDao = new SupabaseReservationDao();

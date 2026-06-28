@@ -9,7 +9,6 @@ import type { AvailabilitySearchParams } from "@/types/reservation";
 import { createAvailabilityQuery } from "@/utils/reservationQuery";
 
 const initialSearchState: AvailabilitySearchParams = {
-  hotelId: "waseda-tokyo",
   checkInDate: "",
   checkOutDate: "",
   adults: 2,
