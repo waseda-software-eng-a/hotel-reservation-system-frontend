@@ -1,11 +1,22 @@
 import type { AvailabilityDao } from "@/app/api/dao/availabilityDao";
 import type { AvailabilitySearchParams } from "@/app/api/model/reservation";
-import type { AvailablePlan, AvailableRoom, MealType } from "@/app/api/model/room";
+import type { AvailablePlan, AvailableRoom, MealType, RoomType } from "@/app/api/model/room";
 import { calculateNights } from "@/app/api/service/dateUtils";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { TableRow } from "@/types/database";
 
 const DEFAULT_IMAGE_PATH = "/images/waseriko-hotel.png";
+const ROOM_IMAGE_PATHS: Record<RoomType, string> = {
+  single: "/images/single-room-image.png",
+  double: "/images/double-room-image.png",
+  twin: "/images/twin-room-image.png",
+  suite: "/images/sweet-room-image.png",
+};
+const PLAN_IMAGE_PATHS: Record<MealType, string> = {
+  "room-only": DEFAULT_IMAGE_PATH,
+  breakfast: "/images/breakfast-plan-image.png",
+  "half-board": "/images/dinner-plan-image.png",
+};
 
 function toMealType(value: TableRow<"plans">["meal_type"]): MealType {
   if (value === "room_only") return "room-only";
@@ -93,6 +104,7 @@ export class SupabaseAvailabilityDao implements AvailabilityDao {
     const guestCount = params.adults + params.children;
 
     return plans.flatMap((plan) => {
+      const mealType = toMealType(plan.meal_type);
       const roomTypeIds = new Set(
         planRoomTypes
           .filter((relation) => relation.plan_id === plan.id)
@@ -118,7 +130,7 @@ export class SupabaseAvailabilityDao implements AvailabilityDao {
             amenities: amenities
               .filter((amenity) => amenityIds.has(amenity.id))
               .map((amenity) => amenity.name),
-            imageUrl: roomType.image_path ?? DEFAULT_IMAGE_PATH,
+            imageUrl: ROOM_IMAGE_PATHS[roomType.room_kind],
             description: roomType.description,
             wing: roomType.wing ?? "",
             floor: roomType.floor_label ?? "",
@@ -141,13 +153,13 @@ export class SupabaseAvailabilityDao implements AvailabilityDao {
           id: plan.id,
           name: plan.name,
           summary: plan.summary,
-          mealType: toMealType(plan.meal_type),
+          mealType,
           paymentMethods: plan.payment_methods,
           checkInTime: plan.check_in_time.slice(0, 5),
           checkOutTime: plan.check_out_time.slice(0, 5),
           tags: plan.tags,
           cancellationPolicy: plan.cancellation_policy,
-          imageUrl: plan.image_path ?? DEFAULT_IMAGE_PATH,
+          imageUrl: PLAN_IMAGE_PATHS[mealType],
           rooms,
           lowestTotalPrice: Math.min(...rooms.map((room) => room.totalPrice)),
         },
