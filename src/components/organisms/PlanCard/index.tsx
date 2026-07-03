@@ -92,6 +92,7 @@ export default function PlanCard({ availability, plan }: PlanCardProps) {
             const bookingQuery = createAvailabilityQuery(availability);
             bookingQuery.set("planId", plan.id);
             bookingQuery.set("roomId", room.id);
+            const roomDetailsHref = `/rooms/${room.id}?${bookingQuery.toString()}`;
             const bedLabel =
               room.bedType === "twin"
                 ? "ツインベッド"
@@ -139,12 +140,20 @@ export default function PlanCard({ availability, plan }: PlanCardProps) {
                       {formatCurrency(room.totalPrice)}
                     </p>
                   </div>
-                  <Link
-                    className="inline-flex min-h-12 items-center justify-center bg-[#856c34] px-6 text-sm font-bold text-white transition hover:bg-[#755f2d]"
-                    href={`/booking?${bookingQuery.toString()}`}
-                  >
-                    今すぐ予約
-                  </Link>
+                  <div className="grid w-full grid-cols-2 gap-2 md:w-auto">
+                    <Link
+                      className="inline-flex min-h-12 items-center justify-center border border-[#856c34] px-4 text-sm font-bold text-[#856c34] transition hover:bg-[#f2eee5]"
+                      href={roomDetailsHref}
+                    >
+                      客室詳細
+                    </Link>
+                    <Link
+                      className="inline-flex min-h-12 items-center justify-center bg-[#856c34] px-4 text-sm font-bold text-white transition hover:bg-[#755f2d]"
+                      href={`/booking?${bookingQuery.toString()}`}
+                    >
+                      予約する
+                    </Link>
+                  </div>
                 </div>
               </article>
             );
