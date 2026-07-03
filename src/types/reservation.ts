@@ -82,7 +82,21 @@ export type Reservation = {
   paymentMethod: PaymentMethod;
   representativeInfo: RepresentativeInfo;
   guestNames: string[];
-  status: "confirmed";
+  status: "pending" | "confirmed" | "cancelled" | "completed" | "no_show";
   createdAt: string;
   totalPrice: number;
 };
+
+export type ReservationDetails = Reservation & {
+  planName: string;
+  roomName: string;
+  cancellationPolicy: string;
+  cancelledAt: string | null;
+};
+
+export type ReservationCredentials = {
+  confirmationCode: string;
+  email: string;
+};
+
+export type ReservationUpdateDraft = ReservationDraft & ReservationCredentials;

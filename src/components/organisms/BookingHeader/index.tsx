@@ -20,6 +20,9 @@ export default function BookingHeader({ activeStep, plansHref = "/plans" }: Book
         <Link className="font-serif text-lg tracking-[0.18em] text-[#1a1a1a]" href="/">
           HOTEL WASERIKO
         </Link>
+        <Link className="ml-auto mr-4 text-xs text-[#856c34] sm:mr-8" href="/reservations">
+          予約確認・変更
+        </Link>
         <nav aria-label="予約手順" className="hidden sm:block">
           <ol className="flex items-center">
             {steps.map((step, index) => {

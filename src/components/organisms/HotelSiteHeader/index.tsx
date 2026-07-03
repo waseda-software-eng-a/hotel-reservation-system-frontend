@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import Image from "next/image";
+import Link from "next/link";
 
 const navigationItems = [
   "宿泊",
@@ -60,12 +62,14 @@ function HeaderIcon({ type }: { type: HeaderIconType }) {
 
 function HotelLogo() {
   return (
-    <span className="flex flex-col items-center font-serif leading-none text-[#1a1a1a]">
-      <span className="text-[10px] tracking-[0.36em]">HOTEL</span>
-      <span className="mt-1 text-xl tracking-[0.2em] md:text-2xl">WASERIKO</span>
-      <span className="mt-1.5 h-px w-10 bg-[#856c34]" />
-      <span className="mt-1.5 text-[8px] tracking-[0.28em] text-[#856c34]">TOKYO</span>
-    </span>
+    <Image
+      alt="ホテルワセリコ"
+      className="h-16 w-auto object-contain xl:h-28"
+      height={736}
+      priority
+      src="/images/log.jpeg"
+      width={1254}
+    />
   );
 }
 
@@ -160,16 +164,16 @@ export default function HotelSiteHeader({ onReservationOpen }: { onReservationOp
           <HotelLogo />
         </a>
         <div className="flex items-stretch">
-          <button
+          <Link
             className="group relative flex min-w-24 flex-col items-center justify-center gap-2 px-3 text-xs transition hover:text-[#856c34]"
-            type="button"
+            href="/reservations"
           >
             <span className="text-[#856c34]">
               <HeaderIcon type="login" />
             </span>
-            ログイン
+            予約確認
             <span className="absolute bottom-0 h-0.5 w-0 bg-[#856c34] transition-all group-hover:w-12" />
-          </button>
+          </Link>
           <button
             className="flex aspect-square flex-col items-center justify-center gap-2 bg-[#1a1a1a] px-3 text-xs leading-tight text-white transition hover:bg-[#2e2e2e]"
             type="button"

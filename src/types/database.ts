@@ -218,6 +218,33 @@ export type Database = {
         };
         Returns: Database["public"]["Tables"]["reservations"]["Row"];
       };
+      update_reservation: {
+        Args: {
+          p_adults: number;
+          p_check_in_date: string;
+          p_check_out_date: string;
+          p_children: number;
+          p_confirmation_code: string;
+          p_current_email: string;
+          p_guest_names: string[];
+          p_payment_method: Database["public"]["Enums"]["payment_method"];
+          p_plan_id: string;
+          p_representative_address: string;
+          p_representative_email: string;
+          p_representative_phone: string;
+          p_representative_postal_code: string;
+          p_room_count: number;
+          p_room_type_id: string;
+        };
+        Returns: Database["public"]["Tables"]["reservations"]["Row"];
+      };
+      cancel_reservation: {
+        Args: {
+          p_confirmation_code: string;
+          p_email: string;
+        };
+        Returns: Database["public"]["Tables"]["reservations"]["Row"];
+      };
     };
     Enums: {
       bed_kind: "single" | "double" | "twin";

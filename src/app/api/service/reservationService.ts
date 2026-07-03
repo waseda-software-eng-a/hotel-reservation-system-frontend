@@ -1,6 +1,12 @@
 import type { AvailabilityDao } from "@/app/api/dao/availabilityDao";
 import type { ReservationDao } from "@/app/api/dao/reservationDao";
-import type { Reservation, ReservationDraft } from "@/app/api/model/reservation";
+import type {
+  Reservation,
+  ReservationCredentials,
+  ReservationDetails,
+  ReservationDraft,
+  ReservationUpdateDraft,
+} from "@/app/api/model/reservation";
 import { isValidStayRange } from "@/app/api/service/dateUtils";
 
 export class ReservationService {
@@ -9,19 +15,18 @@ export class ReservationService {
     private readonly availabilityDao: AvailabilityDao,
   ) {}
 
-  async create(draft: ReservationDraft): Promise<Reservation> {
-    if (!draft.roomId) {
-      throw new Error("部屋を選択してください。");
+  private validateCredentials(credentials: ReservationCredentials) {
+    if (!credentials.confirmationCode?.trim() || !credentials.email?.trim()) {
+      throw new Error("予約番号とメールアドレスを入力してください。");
     }
+  }
 
-    if (!draft.planId) {
-      throw new Error("宿泊プランを選択してください。");
-    }
-
+  private async validateDraft(draft: ReservationDraft, checkAvailability = true) {
+    if (!draft.roomId) throw new Error("部屋を選択してください。");
+    if (!draft.planId) throw new Error("宿泊プランを選択してください。");
     if (!isValidStayRange(draft.checkInDate, draft.checkOutDate)) {
       throw new Error("宿泊日を確認してください。");
     }
-
     if (
       !draft.representativeInfo?.email ||
       !draft.representativeInfo.phone ||
@@ -30,11 +35,9 @@ export class ReservationService {
     ) {
       throw new Error("代表者情報を入力してください。");
     }
-
     if (!draft.termsAccepted) {
       throw new Error("キャンセルポリシーと利用条件への同意が必要です。");
     }
-
     if (
       !Number.isInteger(draft.adults) ||
       draft.adults < 1 ||
@@ -45,7 +48,6 @@ export class ReservationService {
     ) {
       throw new Error("宿泊人数・客室数を確認してください。");
     }
-
     if (
       !Array.isArray(draft.guestNames) ||
       draft.guestNames.length !== draft.adults + draft.children ||
@@ -53,10 +55,11 @@ export class ReservationService {
     ) {
       throw new Error("宿泊者全員の氏名を入力してください。");
     }
-
     if (!/^\d{3}-?\d{4}$/.test(draft.representativeInfo.postalCode)) {
       throw new Error("郵便番号は7桁で入力してください。");
     }
+
+    if (!checkAvailability) return;
 
     const plans = await this.availabilityDao.findAvailablePlans({
       checkInDate: draft.checkInDate,
@@ -71,11 +74,31 @@ export class ReservationService {
     if (!selectedPlan || !selectedRoom) {
       throw new Error("選択したプラン・客室は現在予約できません。");
     }
-
     if (!selectedPlan.paymentMethods.includes(draft.paymentMethod)) {
       throw new Error("選択した支払方法は利用できません。");
     }
+  }
 
+  async create(draft: ReservationDraft): Promise<Reservation> {
+    await this.validateDraft(draft);
     return this.reservationDao.create(draft);
+  }
+
+  async find(credentials: ReservationCredentials): Promise<ReservationDetails> {
+    this.validateCredentials(credentials);
+    const reservation = await this.reservationDao.findByCredentials(credentials);
+    if (!reservation) throw new Error("予約番号またはメールアドレスが正しくありません。");
+    return reservation;
+  }
+
+  async update(draft: ReservationUpdateDraft): Promise<ReservationDetails> {
+    this.validateCredentials(draft);
+    await this.validateDraft(draft, false);
+    return this.reservationDao.update(draft);
+  }
+
+  async cancel(credentials: ReservationCredentials): Promise<ReservationDetails> {
+    this.validateCredentials(credentials);
+    return this.reservationDao.cancel(credentials);
   }
 }
