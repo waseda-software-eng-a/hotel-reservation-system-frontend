@@ -1,5 +1,6 @@
 import { availabilityDao, reservationDao } from "@/app/api/dao";
 import type { ReservationDraft } from "@/app/api/model/reservation";
+import { toApiError } from "@/app/api/service/apiError";
 import { ReservationService } from "@/app/api/service/reservationService";
 import { NextResponse } from "next/server";
 
@@ -10,9 +11,7 @@ export async function POST(request: Request) {
     const reservation = await service.create(draft);
     return NextResponse.json({ reservation }, { status: 201 });
   } catch (error) {
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : "予約に失敗しました。" },
-      { status: 400 },
-    );
+    const apiError = toApiError(error, "予約に失敗しました。");
+    return NextResponse.json({ message: apiError.message }, { status: apiError.status });
   }
 }

@@ -1,6 +1,7 @@
 import type { AvailabilityDao } from "@/app/api/dao/availabilityDao";
 import type { AvailabilitySearchParams } from "@/app/api/model/reservation";
 import type { AvailablePlan, AvailableRoom, MealType, RoomType } from "@/app/api/model/room";
+import { internalError } from "@/app/api/service/apiError";
 import { calculateNights } from "@/app/api/service/dateUtils";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { TableRow } from "@/types/database";
@@ -90,7 +91,7 @@ export class SupabaseAvailabilityDao implements AvailabilityDao {
     ].find(Boolean);
 
     if (firstError) {
-      throw new Error(`空室情報の取得に失敗しました: ${firstError.message}`);
+      throw internalError(`空室情報の取得に失敗しました: ${firstError.message}`);
     }
 
     const plans = plansResult.data ?? [];

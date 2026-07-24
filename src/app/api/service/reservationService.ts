@@ -7,6 +7,7 @@ import type {
   ReservationDraft,
   ReservationUpdateDraft,
 } from "@/app/api/model/reservation";
+import { badRequest, conflict, notFound } from "@/app/api/service/apiError";
 import { isValidStayRange } from "@/app/api/service/dateUtils";
 
 export class ReservationService {
@@ -17,15 +18,15 @@ export class ReservationService {
 
   private validateCredentials(credentials: ReservationCredentials) {
     if (!credentials.confirmationCode?.trim() || !credentials.email?.trim()) {
-      throw new Error("予約番号とメールアドレスを入力してください。");
+      throw badRequest("予約番号とメールアドレスを入力してください。");
     }
   }
 
   private async validateDraft(draft: ReservationDraft, checkAvailability = true) {
-    if (!draft.roomId) throw new Error("部屋を選択してください。");
-    if (!draft.planId) throw new Error("宿泊プランを選択してください。");
+    if (!draft.roomId) throw badRequest("部屋を選択してください。");
+    if (!draft.planId) throw badRequest("宿泊プランを選択してください。");
     if (!isValidStayRange(draft.checkInDate, draft.checkOutDate)) {
-      throw new Error("宿泊日を確認してください。");
+      throw badRequest("宿泊日を確認してください。");
     }
     if (
       !draft.representativeInfo?.email ||
@@ -33,10 +34,10 @@ export class ReservationService {
       !draft.representativeInfo.postalCode ||
       !draft.representativeInfo.address
     ) {
-      throw new Error("代表者情報を入力してください。");
+      throw badRequest("代表者情報を入力してください。");
     }
     if (!draft.termsAccepted) {
-      throw new Error("キャンセルポリシーと利用条件への同意が必要です。");
+      throw badRequest("キャンセルポリシーと利用条件への同意が必要です。");
     }
     if (
       !Number.isInteger(draft.adults) ||
@@ -46,17 +47,17 @@ export class ReservationService {
       !Number.isInteger(draft.roomCount) ||
       draft.roomCount < 1
     ) {
-      throw new Error("宿泊人数・客室数を確認してください。");
+      throw badRequest("宿泊人数・客室数を確認してください。");
     }
     if (
       !Array.isArray(draft.guestNames) ||
       draft.guestNames.length !== draft.adults + draft.children ||
       draft.guestNames.some((name) => !name.trim())
     ) {
-      throw new Error("宿泊者全員の氏名を入力してください。");
+      throw badRequest("宿泊者全員の氏名を入力してください。");
     }
     if (!/^\d{3}-?\d{4}$/.test(draft.representativeInfo.postalCode)) {
-      throw new Error("郵便番号は7桁で入力してください。");
+      throw badRequest("郵便番号は7桁で入力してください。");
     }
 
     if (!checkAvailability) return;
@@ -72,10 +73,10 @@ export class ReservationService {
     const selectedRoom = selectedPlan?.rooms.find((room) => room.id === draft.roomId);
 
     if (!selectedPlan || !selectedRoom) {
-      throw new Error("選択したプラン・客室は現在予約できません。");
+      throw conflict("選択したプラン・客室は現在予約できません。");
     }
     if (!selectedPlan.paymentMethods.includes(draft.paymentMethod)) {
-      throw new Error("選択した支払方法は利用できません。");
+      throw badRequest("選択した支払方法は利用できません。");
     }
   }
 
@@ -87,7 +88,7 @@ export class ReservationService {
   async find(credentials: ReservationCredentials): Promise<ReservationDetails> {
     this.validateCredentials(credentials);
     const reservation = await this.reservationDao.findByCredentials(credentials);
-    if (!reservation) throw new Error("予約番号またはメールアドレスが正しくありません。");
+    if (!reservation) throw notFound("予約番号またはメールアドレスが正しくありません。");
     return reservation;
   }
 

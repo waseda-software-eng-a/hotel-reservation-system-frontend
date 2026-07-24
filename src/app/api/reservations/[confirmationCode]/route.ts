@@ -1,15 +1,14 @@
 import { availabilityDao, reservationDao } from "@/app/api/dao";
 import type { ReservationUpdateDraft } from "@/app/api/model/reservation";
+import { toApiError } from "@/app/api/service/apiError";
 import { ReservationService } from "@/app/api/service/reservationService";
 import { NextResponse } from "next/server";
 
 type RouteContext = { params: Promise<{ confirmationCode: string }> };
 
 function errorResponse(error: unknown, fallback: string) {
-  return NextResponse.json(
-    { message: error instanceof Error ? error.message : fallback },
-    { status: 400 },
-  );
+  const apiError = toApiError(error, fallback);
+  return NextResponse.json({ message: apiError.message }, { status: apiError.status });
 }
 
 export async function GET(request: Request, context: RouteContext) {

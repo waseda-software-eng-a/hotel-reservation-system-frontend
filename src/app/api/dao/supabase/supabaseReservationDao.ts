@@ -6,6 +6,7 @@ import type {
   ReservationDraft,
   ReservationUpdateDraft,
 } from "@/app/api/model/reservation";
+import { internalError, mapReservationPersistenceError } from "@/app/api/service/apiError";
 import { calculateNights } from "@/app/api/service/dateUtils";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { TableRow } from "@/types/database";
@@ -61,7 +62,7 @@ export class SupabaseReservationDao implements ReservationDao {
 
     const error = guestsResult.error ?? planResult.error ?? roomResult.error;
     if (error || !planResult.data || !roomResult.data) {
-      throw new Error(`予約詳細の取得に失敗しました${error ? `: ${error.message}` : "。"}`);
+      throw internalError(`予約詳細の取得に失敗しました${error ? `: ${error.message}` : "。"}`);
     }
 
     return {
@@ -93,7 +94,9 @@ export class SupabaseReservationDao implements ReservationDao {
       p_room_type_id: draft.roomId,
     });
 
-    if (error || !data) throw new Error(error?.message ?? "予約の保存に失敗しました。");
+    if (error || !data) {
+      throw mapReservationPersistenceError(error, "予約の保存に失敗しました。");
+    }
     return toReservation(
       data,
       draft.guestNames.map((name) => name.trim()),
@@ -112,7 +115,7 @@ export class SupabaseReservationDao implements ReservationDao {
       .ilike("representative_email", email.trim())
       .maybeSingle();
 
-    if (error) throw new Error(`予約の取得に失敗しました: ${error.message}`);
+    if (error) throw internalError(`予約の取得に失敗しました: ${error.message}`);
     return data ? this.enrich(data) : null;
   }
 
@@ -135,7 +138,9 @@ export class SupabaseReservationDao implements ReservationDao {
       p_room_type_id: draft.roomId,
     });
 
-    if (error || !data) throw new Error(error?.message ?? "予約の変更に失敗しました。");
+    if (error || !data) {
+      throw mapReservationPersistenceError(error, "予約の変更に失敗しました。");
+    }
     return this.enrich(data);
   }
 
@@ -145,7 +150,9 @@ export class SupabaseReservationDao implements ReservationDao {
       p_email: credentials.email,
     });
 
-    if (error || !data) throw new Error(error?.message ?? "予約のキャンセルに失敗しました。");
+    if (error || !data) {
+      throw mapReservationPersistenceError(error, "予約のキャンセルに失敗しました。");
+    }
     return this.enrich(data);
   }
 }
