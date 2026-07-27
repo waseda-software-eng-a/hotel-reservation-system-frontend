@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
+import ChatPanel from "@/components/organisms/ChatPanel";
+import { fetchGuestChat, sendGuestChatMessage } from "@/lib/chatApi";
 import type {
   AvailabilitySearchParams,
   AvailablePlan,
@@ -9,6 +11,7 @@ import type {
   RepresentativeInfo,
   ReservationDetails,
 } from "@/types/reservation";
+import type { ChatMessage } from "@/types/chat";
 import {
   cancelReservation,
   findReservation,
@@ -55,13 +58,21 @@ function toEditState(reservation: ReservationDetails): EditState {
 function ManagementHeader() {
   return (
     <header className="border-b border-stone-200 bg-white">
-      <div className="mx-auto flex min-h-24 max-w-6xl items-center justify-between px-5">
+      <div className="mx-auto flex min-h-24 max-w-6xl items-center justify-between gap-4 px-5">
         <Link className="font-serif text-lg tracking-[0.18em] text-[#1a1a1a]" href="/">
           HOTEL WASERIKO
         </Link>
-        <Link className="text-sm text-[#856c34] underline underline-offset-4" href="/">
-          ホテルサイトへ戻る
-        </Link>
+        <div className="flex flex-wrap items-center justify-end gap-4">
+          <Link className="text-sm text-stone-600 underline underline-offset-4" href="/hotel/contents">
+            コンテンツ編集
+          </Link>
+          <Link className="text-sm text-stone-600 underline underline-offset-4" href="/hotel/chats">
+            ホテルデスク
+          </Link>
+          <Link className="text-sm text-[#856c34] underline underline-offset-4" href="/">
+            ホテルサイトへ戻る
+          </Link>
+        </div>
       </div>
     </header>
   );
@@ -78,6 +89,61 @@ export default function ReservationManagementPageTemplate() {
   const [isSearching, setIsSearching] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatError, setChatError] = useState("");
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [chatCredentials, setChatCredentials] = useState<{
+    confirmationCode: string;
+    email: string;
+  } | null>(null);
+
+  const refreshChat = useCallback(async () => {
+    if (!chatCredentials) return;
+    const thread = await fetchGuestChat(
+      chatCredentials.confirmationCode,
+      chatCredentials.email,
+    );
+    setChatMessages(thread.messages);
+  }, [chatCredentials]);
+
+  async function openChat(nextConfirmationCode: string, nextEmail: string) {
+    setChatError("");
+    setIsChatLoading(true);
+    try {
+      const credentials = {
+        confirmationCode: nextConfirmationCode.trim(),
+        email: nextEmail.trim(),
+      };
+      const thread = await fetchGuestChat(credentials.confirmationCode, credentials.email);
+      setChatCredentials(credentials);
+      setChatMessages(thread.messages);
+      setIsChatOpen(true);
+    } catch (openError) {
+      setChatError(
+        openError instanceof Error ? openError.message : "チャットを開けませんでした。",
+      );
+      setIsChatOpen(false);
+    } finally {
+      setIsChatLoading(false);
+    }
+  }
+
+  async function handleOpenChat() {
+    setError("");
+    setMessage("");
+    await openChat(confirmationCode, email);
+  }
+
+  async function handleSendChat(body: string) {
+    if (!chatCredentials) return;
+    await sendGuestChatMessage(
+      chatCredentials.confirmationCode,
+      chatCredentials.email,
+      body,
+    );
+    await refreshChat();
+  }
 
   async function handleLookup(event: React.FormEvent) {
     event.preventDefault();
@@ -185,7 +251,7 @@ export default function ReservationManagementPageTemplate() {
           <p className="text-xs tracking-[0.24em] text-[#856c34]">RESERVATION</p>
           <h1 className="mt-3 font-serif text-3xl font-semibold md:text-4xl">ご予約の確認・変更</h1>
           <p className="mt-5 max-w-2xl text-sm leading-7 text-stone-600">
-            予約完了時に発行された予約番号と、代表者のメールアドレスを入力してください。
+            予約完了時に発行された予約番号と、代表者のメールアドレスを入力してください。同じ情報でホテルへのチャット問い合わせもできます。
           </p>
         </div>
       </section>
@@ -204,7 +270,7 @@ export default function ReservationManagementPageTemplate() {
         )}
 
         <form
-          className="grid gap-5 border border-stone-200 bg-white p-6 shadow-[0_8px_30px_rgba(26,21,10,0.05)] md:grid-cols-[1fr_1fr_auto] md:items-end md:p-8"
+          className="grid gap-5 border border-stone-200 bg-white p-6 shadow-[0_8px_30px_rgba(26,21,10,0.05)] md:grid-cols-2 md:p-8"
           onSubmit={handleLookup}
         >
           <label className={labelClass}>
@@ -228,14 +294,45 @@ export default function ReservationManagementPageTemplate() {
               value={email}
             />
           </label>
-          <button
-            className="min-h-12 bg-[#856c34] px-8 text-sm font-bold text-white transition hover:bg-[#755f2d] disabled:opacity-50"
-            disabled={isLoading}
-            type="submit"
-          >
-            {isLoading ? "確認中…" : "予約を確認"}
-          </button>
+          <div className="flex flex-wrap gap-3 md:col-span-2 md:justify-end">
+            <button
+              className="min-h-12 border border-[#856c34] px-6 text-sm font-bold text-[#856c34] transition hover:bg-[#faf8f2] disabled:opacity-50"
+              disabled={isChatLoading || !confirmationCode.trim() || !email.trim()}
+              onClick={handleOpenChat}
+              type="button"
+            >
+              {isChatLoading ? "接続中…" : "ホテルにチャットする"}
+            </button>
+            <button
+              className="min-h-12 bg-[#856c34] px-8 text-sm font-bold text-white transition hover:bg-[#755f2d] disabled:opacity-50"
+              disabled={isLoading}
+              type="submit"
+            >
+              {isLoading ? "確認中…" : "予約を確認"}
+            </button>
+          </div>
         </form>
+
+        {(chatError || isChatOpen) && (
+          <div className="mt-8">
+            {chatError && !isChatOpen && (
+              <p className="mb-5 border border-red-200 bg-red-50 px-5 py-4 text-sm font-semibold text-red-700">
+                {chatError}
+              </p>
+            )}
+            {isChatOpen && chatCredentials && (
+              <ChatPanel
+                error={chatError}
+                isLoading={isChatLoading}
+                messages={chatMessages}
+                onRefresh={refreshChat}
+                onSend={handleSendChat}
+                selfSender="guest"
+                title={`ホテルへの問い合わせ（${chatCredentials.confirmationCode}）`}
+              />
+            )}
+          </div>
+        )}
 
         {reservation && edit && (
           <section className="mt-10 border border-stone-200 bg-white">
@@ -293,25 +390,35 @@ export default function ReservationManagementPageTemplate() {
                   <summary className="cursor-pointer text-[#856c34]">キャンセルポリシー</summary>
                   <p className="mt-3 leading-7">{reservation.cancellationPolicy}</p>
                 </details>
-                {reservation.status === "confirmed" && (
-                  <div className="mt-8 flex flex-wrap justify-end gap-3">
-                    <button
-                      className="min-h-12 border border-red-300 px-6 text-sm font-bold text-red-700"
-                      disabled={isLoading}
-                      onClick={handleCancel}
-                      type="button"
-                    >
-                      予約をキャンセル
-                    </button>
-                    <button
-                      className="min-h-12 bg-[#856c34] px-7 text-sm font-bold text-white"
-                      onClick={() => setIsEditing(true)}
-                      type="button"
-                    >
-                      予約内容を変更
-                    </button>
-                  </div>
-                )}
+                <div className="mt-8 flex flex-wrap justify-end gap-3">
+                  <button
+                    className="min-h-12 border border-[#856c34] px-6 text-sm font-bold text-[#856c34]"
+                    disabled={isChatLoading}
+                    onClick={() => openChat(reservation.id, email)}
+                    type="button"
+                  >
+                    ホテルにチャットする
+                  </button>
+                  {reservation.status === "confirmed" && (
+                    <>
+                      <button
+                        className="min-h-12 border border-red-300 px-6 text-sm font-bold text-red-700"
+                        disabled={isLoading}
+                        onClick={handleCancel}
+                        type="button"
+                      >
+                        予約をキャンセル
+                      </button>
+                      <button
+                        className="min-h-12 bg-[#856c34] px-7 text-sm font-bold text-white"
+                        onClick={() => setIsEditing(true)}
+                        type="button"
+                      >
+                        予約内容を変更
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="p-6 md:p-8">
