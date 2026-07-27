@@ -4,14 +4,19 @@ import { useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-const navigationItems = [
-  "宿泊",
-  "レストラン・バー",
-  "ホテルショップ",
-  "宴会・会議",
-  "ウエディング",
-  "イベント",
-  "館内施設・アクセス",
+type NavItem = {
+  label: string;
+  href?: string;
+};
+
+const navigationItems: NavItem[] = [
+  { label: "宿泊" },
+  { label: "レストラン・バー" },
+  { label: "ホテルショップ", href: "/shop" },
+  { label: "宴会・会議" },
+  { label: "ウエディング" },
+  { label: "イベント", href: "/events" },
+  { label: "館内施設・アクセス" },
 ];
 
 type HeaderIconType = "language" | "search" | "location" | "login" | "shop" | "calendar";
@@ -73,6 +78,44 @@ function HotelLogo() {
   );
 }
 
+function NavAction({
+  item,
+  onReservationOpen,
+  onNavigate,
+}: {
+  item: NavItem;
+  onReservationOpen: () => void;
+  onNavigate?: () => void;
+}) {
+  const className =
+    "group relative flex w-full items-center justify-between px-0 py-4 text-left text-sm tracking-[0.1em] transition hover:text-[#856c34] xl:justify-center xl:px-6 xl:py-0";
+
+  if (item.href) {
+    return (
+      <Link className={className} href={item.href} onClick={onNavigate}>
+        {item.label}
+        <span className="text-[#856c34] xl:hidden">›</span>
+        <span className="absolute bottom-0 left-1/2 hidden h-0.5 w-0 -translate-x-1/2 bg-[#856c34] transition-all group-hover:w-[calc(100%-3rem)] xl:block" />
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      className={className}
+      onClick={() => {
+        onNavigate?.();
+        if (item.label === "宿泊") onReservationOpen();
+      }}
+      type="button"
+    >
+      {item.label}
+      <span className="text-[#856c34] xl:hidden">›</span>
+      <span className="absolute bottom-0 left-1/2 hidden h-0.5 w-0 -translate-x-1/2 bg-[#856c34] transition-all group-hover:w-[calc(100%-3rem)] xl:block" />
+    </button>
+  );
+}
+
 export default function HotelSiteHeader({ onReservationOpen }: { onReservationOpen: () => void }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -96,13 +139,13 @@ export default function HotelSiteHeader({ onReservationOpen }: { onReservationOp
           </span>
           menu
         </button>
-        <a
+        <Link
           aria-label="ホテルワセリコ ホーム"
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-          href="#top"
+          href="/"
         >
           <HotelLogo />
-        </a>
+        </Link>
         <button
           className="flex w-20 flex-col items-center justify-center gap-1 bg-[#856c34] text-[11px] text-white transition hover:bg-[#755f2d]"
           onClick={() => {
@@ -120,14 +163,12 @@ export default function HotelSiteHeader({ onReservationOpen }: { onReservationOp
         <nav className="absolute left-0 right-0 top-20 border-t border-[#e6e6e6] bg-white px-6 py-7 shadow-lg xl:hidden">
           <ul>
             {navigationItems.map((item) => (
-              <li className="border-b border-[#e6e6e6]" key={item}>
-                <button
-                  className="flex w-full items-center justify-between py-4 text-left text-sm tracking-[0.1em]"
-                  type="button"
-                >
-                  {item}
-                  <span className="text-[#856c34]">›</span>
-                </button>
+              <li className="border-b border-[#e6e6e6]" key={item.label}>
+                <NavAction
+                  item={item}
+                  onNavigate={() => setIsMobileMenuOpen(false)}
+                  onReservationOpen={onReservationOpen}
+                />
               </li>
             ))}
           </ul>
@@ -156,13 +197,13 @@ export default function HotelSiteHeader({ onReservationOpen }: { onReservationOp
             </button>
           ))}
         </div>
-        <a
+        <Link
           aria-label="ホテルワセリコ ホーム"
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-          href="#top"
+          href="/"
         >
           <HotelLogo />
-        </a>
+        </Link>
         <div className="flex items-stretch">
           <Link
             className="group relative flex min-w-24 flex-col items-center justify-center gap-2 px-3 text-xs transition hover:text-[#856c34]"
@@ -174,9 +215,9 @@ export default function HotelSiteHeader({ onReservationOpen }: { onReservationOp
             予約確認
             <span className="absolute bottom-0 h-0.5 w-0 bg-[#856c34] transition-all group-hover:w-12" />
           </Link>
-          <button
+          <Link
             className="flex aspect-square flex-col items-center justify-center gap-2 bg-[#1a1a1a] px-3 text-xs leading-tight text-white transition hover:bg-[#2e2e2e]"
-            type="button"
+            href="/shop"
           >
             <HeaderIcon type="shop" />
             <span>
@@ -184,7 +225,7 @@ export default function HotelSiteHeader({ onReservationOpen }: { onReservationOp
               <br />
               モール
             </span>
-          </button>
+          </Link>
           <button
             className="flex min-w-32 flex-col items-center justify-center gap-2 bg-[#856c34] px-4 text-sm text-white transition hover:bg-[#755f2d]"
             onClick={onReservationOpen}
@@ -199,15 +240,8 @@ export default function HotelSiteHeader({ onReservationOpen }: { onReservationOp
       <nav className="hidden border-t border-[#e6e6e6] xl:block">
         <ul className="flex h-16 items-stretch justify-center">
           {navigationItems.map((item) => (
-            <li className="flex" key={item}>
-              <button
-                className="group relative px-6 text-sm tracking-[0.12em] transition hover:text-[#856c34]"
-                onClick={item === "宿泊" ? onReservationOpen : undefined}
-                type="button"
-              >
-                {item}
-                <span className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 bg-[#856c34] transition-all group-hover:w-[calc(100%-3rem)]" />
-              </button>
+            <li className="flex" key={item.label}>
+              <NavAction item={item} onReservationOpen={onReservationOpen} />
             </li>
           ))}
         </ul>

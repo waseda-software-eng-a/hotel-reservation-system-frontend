@@ -9,6 +9,7 @@
 | `meal_type`          | `room_only`, `breakfast`, `half_board`                      | プランに含まれる食事の分類 |
 | `payment_method`     | `onsite`, `web`                                             | 支払方法                   |
 | `reservation_status` | `pending`, `confirmed`, `cancelled`, `completed`, `no_show` | 予約状態                   |
+| `chat_sender`        | `guest`, `hotel`                                            | チャットの送信者           |
 
 ## `room_types`
 
@@ -128,6 +129,32 @@
 | `sort_order`        | `smallint`    | 予約内での宿泊者の表示順 |
 | `created_at`        | `timestamptz` | 作成日時                 |
 
+## `chat_threads`
+
+お客様とホテルの問い合わせチャットを、予約番号単位で管理する。
+
+| カラム名             | 型            | 説明                               |
+| -------------------- | ------------- | ---------------------------------- |
+| `id`                 | `uuid`        | チャットスレッドID                 |
+| `confirmation_code`  | `text`        | 予約番号（一意）                   |
+| `guest_email`        | `text`        | お客様のメールアドレス             |
+| `last_read_at_guest` | `timestamptz` | お客様側の最終既読日時             |
+| `last_read_at_hotel` | `timestamptz` | ホテル側の最終既読日時             |
+| `created_at`         | `timestamptz` | 作成日時                           |
+| `updated_at`         | `timestamptz` | 更新日時（最終メッセージ送受信時） |
+
+## `chat_messages`
+
+チャットスレッド内の個別メッセージを管理する。
+
+| カラム名     | 型            | 説明                         |
+| ------------ | ------------- | ---------------------------- |
+| `id`         | `uuid`        | メッセージID                 |
+| `thread_id`  | `uuid`        | チャットスレッドID           |
+| `sender`     | `chat_sender` | 送信者（`guest` / `hotel`）  |
+| `body`       | `text`        | メッセージ本文（最大1000文字） |
+| `created_at` | `timestamptz` | 送信日時                     |
+
 ## 予約処理
 
 | DB関数               | 用途                                                                   |
@@ -137,3 +164,5 @@
 | `cancel_reservation` | 予約をロックし、予約状態をキャンセル済みに更新する                     |
 
 予約作成と変更は、客室タイプの行ロックから在庫確認、保存までを同一トランザクションで実行する。これにより、同じ客室に対する同時リクエストでも総客室数を超えた予約を防止する。
+
+チャットは現状アプリ内メモリで動作し、上記テーブルは DB 連携時に利用する。
